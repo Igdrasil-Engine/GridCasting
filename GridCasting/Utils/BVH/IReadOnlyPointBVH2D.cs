@@ -1,0 +1,35 @@
+﻿using IgdrasilEngine.Engine.Math.Boxes;
+using IgdrasilEngine.Engine.Math.Vectors;
+
+namespace GridCasting.Utils.BVH.Point;
+/// <summary>
+/// Интерфейс для чтения BVH дерева точек в 2D пространстве
+/// </summary>
+/// <typeparam name="T">Тип точек в дереве BVH.</typeparam>
+public interface IReadOnlyPointBVH2D<T> where T : PointBVH2DTransform<T>
+{
+    /// <summary>
+    /// Глубина BVH дерева.
+    /// </summary>
+    /// <returns>Глубина дерева.</returns>
+    public uint Depth();
+    /// <summary>
+    /// Находит все точки в пределах заданного радиуса от указанной позиции.
+    /// </summary>
+    /// <param name="position">Позиция для поиска ближайших точек.</param>
+    /// <param name="radius">Радиус поиска.</param>
+    /// <returns>Список точек, найденных в пределах радиуса.</returns>
+    public List<T> FindNearest(FVector2 position, float radius);
+    /// <summary>
+    /// Находит все точки в пределах заданного радиуса от указанной позиции и добавляет их в предоставленный список.
+    /// </summary>
+    /// <param name="position">Позиция для поиска ближайших точек.</param>
+    /// <param name="radius">Радиус поиска.</param>
+    /// <param name="result">Список для добавления найденных точек.</param>
+    public void FindNearest(FVector2 position, float radius, List<T> result);
+    /// <summary>
+    /// Получает граничный прямоугольник, охватывающий все точки в BVH дереве.
+    /// </summary>
+    /// <returns>Граничный прямоугольник.</returns>
+    public FBox2 GetBoundaryBox();
+}
