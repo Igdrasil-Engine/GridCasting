@@ -8,12 +8,12 @@ public class GridGraphEdge(GridGraphNode nodeA, GridGraphNode nodeB, float angle
     /// <summary>
     /// Represents the starting node of the grid edge.
     /// </summary>
-    public GridGraphNode NodeA { get; } = nodeA;
+    public GridGraphNode NodeA { get; internal set; } = nodeA;
 
     /// <summary>
     /// Represents the ending node of the grid edge.
     /// </summary>
-    public GridGraphNode NodeB { get; } = nodeB;
+    public GridGraphNode NodeB { get; internal set; } = nodeB;
 
     /// <summary>
     /// Represents the angle of the grid edge in degrees.

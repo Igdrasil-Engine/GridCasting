@@ -6,7 +6,7 @@ namespace GridCasting.Models;
 /// Represents a path structure consisting of a start node and a series of directions.
 /// The path is iterable, allowing iteration over the start node followed by the direction sequence.
 /// </summary>
-public struct Path(int startNode, int[] directions) : IEnumerable<int>
+public struct Path(int startNode, params int[] directions) : IEnumerable<int>
 {
     /// <summary>
     /// Gets or sets the starting node of the path. This represents the initial point

@@ -1,0 +1,52 @@
+# GuidingTurtle Configuration File
+# Конфигурация генератора документации
+
+# Настройки информации о проекте
+project:
+  solution: "GridCasting.sln"
+  name: "Grid Casting"
+  version: "1.0.0"
+  description: "Библиотека для распознавания и исполнения символьных команд"
+#  homepage: "https://github.com/Igdrasil-Engine/IgdrasilEngine"
+  private-projects:
+    - GridCastingTests
+
+  include-private-projects: true
+
+# Параметры входной документации и структуры
+generator:
+  template-path: "Templates"
+  default-template-name: "page"
+  error-template-name: "error"
+  content-path: "Docs"
+  include-private-docs: true
+  debug: true
+  index-page-names:
+    - "index.md"
+
+# Настройки API экстракции и анализа кода
+api:
+  enable-api-extraction: true
+  include-non-public-members: true
+  include-remarks: true
+  doc-config:
+    layout: "api"
+
+# Параметры вывода и оформления результата
+output:
+  output-path: "docs"
+
+# Настройки кеша рендера
+cache:
+  {}
+
+# Правила построения навигации
+navigation:
+  base-url: "/dev"
+
+# Настройки перекрестных ссылок между API и гайдами
+linker:
+  api-path: "api"
+  docs-path: "docs"
+  enable-markdown-api-links: true
+  enable-api-markdown-links: true

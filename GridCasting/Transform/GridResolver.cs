@@ -81,17 +81,98 @@ public class GridResolver
 
 
     /// <summary>
-    /// Creates a grid graph from a given grid structure, converting the grid's nodes into a graph format,
-    /// which enables advanced graph-based operations and transformations.
+    /// Creates a graph representation from the given grid structure.
     /// </summary>
-    /// <param name="graph">The source grid structure containing nodes to be converted into a graph representation.</param>
+    /// <param name="grid">The grid structure containing nodes and their connections that should be converted into a graph.</param>
     /// <returns>
-    /// A new instance of <c>GridGraph</c> representing the grid in a graph format if the conversion is successful;
-    /// otherwise, returns null if the grid cannot be converted.
+    /// A <c>GridGraph</c> instance representing the converted grid, or <c>null</c> if the grid is invalid
+    /// or cannot be successfully converted.
     /// </returns>
-    public static GridGraph? CreateGridGraph(Grid graph)
+    public static GridGraph? CreateGridGraph(Grid grid)
     {
-        throw new NotImplementedException();
+        if (grid.Nodes.Count == 0) return null;
+        var graph = new GridGraph();
+        var graphNodes = new Dictionary<GridNode, GridGraphNode>();
+        var queue = new Queue<(GridNode? prev, GridNode curr)>();
+        queue.Enqueue((null, grid.Nodes[0]));
+
+        while (queue.TryDequeue(out var result))
+        {
+            var (prev, curr) = result;
+            if (graphNodes.TryGetValue(curr, out var match)) continue;
+            
+            foreach (var connection in curr.Connections.OfType<GridNode>()) 
+                queue.Enqueue((curr, connection));
+            
+            var matches = 0;
+            var freeConnections = curr.Connections.Count(c => c != null);
+            foreach (var graphNode in graph)
+            {
+                if (graphNode.Edges.Count != curr.Connections.Count) continue;
+
+                var usedPositions = graphNode.Edges.Count(edge =>
+                {
+                    var len = edge.NodeA == graphNode ? edge.Length : -edge.Length;
+                    var position = curr.Position + new FVector2(
+                        len * MathF.Cos(edge.Angle),
+                        len * MathF.Sin(edge.Angle)
+                    );
+                    // Add check for edge multiuse
+                    return curr.Connections.Any(c => c != null && FVector2.Distance(c.Position, position) < 1e-4f);
+                });
+                if (freeConnections != usedPositions) continue;
+                if (matches != 0) return null; // Multiple matches
+                match = graphNode;
+                matches++;
+            }
+
+            if (match == null && freeConnections == curr.Connections.Count) // Create a new node only if there are no hanging edges
+            {
+                match = new GridGraphNode();
+                foreach (var node in curr.Connections.OfType<GridNode>())
+                {
+                    var direction = node.Position - curr.Position;
+                    var angle = (float)Math.Atan2(direction.Y, direction.X);
+                    var len = direction.Length;
+                    match.Edges.Add(new GridGraphEdge(match, null, angle, len));
+                }
+                graph.Nodes.Add(match);
+            }
+            if (match == null) continue;
+            
+            graphNodes.Add(curr, match);
+            if (prev == null || !graphNodes.TryGetValue(prev, out var prevNode)) continue;
+            var linked = false;
+            foreach (var edge in from edge in prevNode.Edges
+                     let len = edge.NodeA == prevNode ? edge.Length : -edge.Length
+                     let position = prev.Position + new FVector2(
+                         len * MathF.Cos(edge.Angle),
+                         len * MathF.Sin(edge.Angle)
+                     )
+                     where !(FVector2.Distance(curr.Position, position) >= 1e-4f)
+                     select edge)
+            {
+                if (edge.NodeA == prevNode)
+                {
+                    if (edge.NodeB != null && edge.NodeB != match) return null;
+                    edge.NodeB = match;
+                }
+                else if (edge.NodeB == prevNode)
+                {
+                    if (edge.NodeA != null && edge.NodeA != match) return null;
+                    edge.NodeA = match;
+                }
+                else continue;
+                linked = true;
+                break;
+            }
+            if (!linked) return null;
+        }
+
+        return graphNodes.Values.Distinct()
+            .Any(value => value.Edges.Any(edge => edge.NodeA == null || edge.NodeB == null))
+            ? null
+            : graph;
     }
 
 
@@ -201,6 +282,7 @@ public class GridResolver
     /// </returns>
     public Path? GetPath(FVector2[] positions)
     { 
+        if (positions.Length == 0) return null;
         var point = GetNearestPoint(positions[0]);
         if (point == null) return null;
         var directions = new int[positions.Length - 1];
@@ -211,15 +293,17 @@ public class GridResolver
             var updated = false;
             for (var j = 0; j < node.Edges.Count; j++)
             {
+                var edge = node.Edges[j];
+                var length = edge.NodeA == node ? edge.Length : -edge.Length;
                 var newPos = position + new FVector2(
-                    node.Edges[j].Length * MathF.Cos(node.Edges[j].Angle),
-                    node.Edges[j].Length * MathF.Sin(node.Edges[j].Angle)
+                    length * MathF.Cos(edge.Angle),
+                    length * MathF.Sin(edge.Angle)
                 );
                 if (FVector2.Distance(positions[i], newPos) > _sensitivity) continue;
                 updated = true;
                 directions[i - 1] = j;
                 position = newPos;
-                node = node.Edges[j].NodeA == node ? node.Edges[j].NodeB : node.Edges[j].NodeA;
+                node = edge.NodeA == node ? edge.NodeB : edge.NodeA;
                 break;
             }
             if (!updated) return null; // Path doesn't exist
@@ -240,29 +324,30 @@ public class GridResolver
         var completedPoints = new HashSet<GridGraphPoint>();
         PriorityQueue<GridGraphPoint, float> queue = new();
         var threshold = _graphAABB.Size.Length;
-        var min = new GridGraphPoint(new FVector2(0, 0), _graph.Nodes[0]);
+        var min = _bvh.FindNearest(position) ?? new GridGraphPoint(new FVector2(0, 0), _graph.Nodes[0]);
         var minDistance = FVector2.Distance(position, min.TreePosition);
         queue.Enqueue(min, minDistance);
         while (queue.TryDequeue(out var point, out var priority))
         {
-            if (priority < _sensitivity) break;
             if (!completedPoints.Add(point)) continue;
             if (_bvh.FindNearest(point.TreePosition, 1e-5f).Count == 0) _bvh.Add(point);
             if (priority < minDistance)
             {
                 minDistance = priority;
                 min = point;
+                if (priority < _sensitivity) break;
             }
             else if (priority > minDistance + threshold) break;
 
             foreach (var edge in point.Node.Edges)
             {
                 var nextNode = edge.NodeA == point.Node ? edge.NodeB : edge.NodeA;
+                var length = edge.NodeA == point.Node ? edge.Length : -edge.Length;
                 var dir = new FVector2(
                     MathF.Cos(edge.Angle),
                     MathF.Sin(edge.Angle)
                 );
-                var nextPosition = point.TreePosition + edge.Length * dir;
+                var nextPosition = point.TreePosition + length * dir;
                 var nextPoint = new GridGraphPoint(nextPosition, nextNode);
                 var dirToTarget = (position - point.TreePosition).Normalized;
                 if (FVector2.Dot(dirToTarget, dir) < -0.3f) continue;
@@ -301,9 +386,10 @@ public class GridResolver
             foreach (var edge in point.Node.Edges)
             {
                 var nextNode = edge.NodeA == point.Node ? edge.NodeB : edge.NodeA;
+                var length = edge.NodeA == point.Node ? edge.Length : -edge.Length;
                 var nextPosition = point.TreePosition + new FVector2(
-                    edge.Length * MathF.Cos(edge.Angle),
-                    edge.Length * MathF.Sin(edge.Angle)
+                    length * MathF.Cos(edge.Angle),
+                    length * MathF.Sin(edge.Angle)
                 );
                 var nextPoint = new GridGraphPoint(nextPosition, nextNode);
                 switch (callback(pointRepresentation, nextPoint))
@@ -332,7 +418,7 @@ public class GridResolver
         SkipNode,
         AbortTraversal
     }
-    
+
 
     /// <summary>
     /// Represents a point in a grid graph, used within a 2D BVH (Bounding Volume Hierarchy) tree structure.
@@ -346,7 +432,7 @@ public class GridResolver
     {
         public override FVector2 TreePosition { get; protected set; } = position;
         public GridGraphNode Node { get; } = node;
-        
+
         private static FVector2 Quantize(FVector2 p)
         {
             const float eps = 0.001f;
@@ -355,6 +441,24 @@ public class GridResolver
                 MathF.Round(p.Y / eps) * eps
             );
         }
-        public override int GetHashCode() => HashCode.Combine(Node, Quantize(TreePosition));
+
+        protected bool Equals(GridGraphPoint other)
+        {
+            return Quantize(TreePosition).Equals(Quantize(other.TreePosition)) && Node.Equals(other.Node);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((GridGraphPoint)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Quantize(TreePosition), Node);
+        }
     }
 }
+

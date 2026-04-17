@@ -1,5 +1,4 @@
-﻿using GridCasting.Utils.BVH.Point;
-using IgdrasilEngine.Engine.Math.Vectors;
+﻿using IgdrasilEngine.Engine.Math.Vectors;
 
 namespace GridCasting.Utils.BVH;
 

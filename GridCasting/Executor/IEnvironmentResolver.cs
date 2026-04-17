@@ -1,5 +1,9 @@
 ﻿namespace GridCasting.Executor;
 
+/// <summary>
+/// Provides an abstraction for managing and resolving environment-specific variables,
+/// enabling the dynamic loading, updating, resetting, and unloading of environment configurations.
+/// </summary>
 public interface IEnvironmentResolver
 {
     /// <summary>

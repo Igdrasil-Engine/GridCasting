@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuidingTurtle", "..\Igdrasi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IgdrasilEngine", "IgdrasilEngine", "{41458A8F-715B-405E-84E2-140989D50977}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GridCastingTests", "GridCastingTests\GridCastingTests.csproj", "{D109D2B9-B2DD-43CE-8FA7-7E118BCF16EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SapphireCodegen", "..\IgdrasilEngine\SapphireCodegen\SapphireCodegen.csproj", "{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +30,18 @@ Global
 		{2575A7D5-2936-4823-A0B4-A466790D70B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2575A7D5-2936-4823-A0B4-A466790D70B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2575A7D5-2936-4823-A0B4-A466790D70B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D109D2B9-B2DD-43CE-8FA7-7E118BCF16EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D109D2B9-B2DD-43CE-8FA7-7E118BCF16EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D109D2B9-B2DD-43CE-8FA7-7E118BCF16EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D109D2B9-B2DD-43CE-8FA7-7E118BCF16EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2575A7D5-2936-4823-A0B4-A466790D70B5} = {41458A8F-715B-405E-84E2-140989D50977}
 		{10E6C5FC-990E-429E-9635-E4F639FF6B9D} = {41458A8F-715B-405E-84E2-140989D50977}
+		{66C444B7-F9D3-4C6A-A7A2-E2443C7342AE} = {41458A8F-715B-405E-84E2-140989D50977}
 	EndGlobalSection
 EndGlobal

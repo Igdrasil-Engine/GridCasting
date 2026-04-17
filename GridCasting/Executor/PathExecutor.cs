@@ -1,4 +1,6 @@
-﻿using GridCasting.Utils;
+﻿using GridCasting.Models.GridGraph;
+using GridCasting.Transform;
+using GridCasting.Utils;
 using Path = GridCasting.Models.Path;
 
 namespace GridCasting.Executor;
@@ -16,6 +18,31 @@ namespace GridCasting.Executor;
 /// </remarks>
 public class PathExecutor
 {
+    /// <summary>
+    /// Represents the graph structure used for path execution in the <see cref="PathExecutor"/> class.
+    /// This field stores the instance of <see cref="GridGraph"/>, which contains the nodes and relationships
+    /// that define the underlying grid configuration.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="_graph"/> field acts as a foundational data structure for path-related operations.
+    /// It is used to manage, traverse, and interact with grid nodes during the execution of commands or
+    /// transformations. The graph consists of a collection of <see cref="GridGraphNode"/> instances
+    /// which can be iterated or accessed by index.
+    /// </remarks>
+    private readonly GridGraph _graph;
+
+    /// <summary>
+    /// Holds a collection of path transformation implementations that are applied during path execution.
+    /// Each transformation conforms to the <see cref="IPathTransform"/> interface, enabling dynamic
+    /// modification of paths based on specific rules or a grid graph structure.
+    /// </summary>
+    /// <remarks>
+    /// The field is populated with a set of provided path transform instances. These transform instances
+    /// are used to modify or adapt path-related data during the execution process, and ensure a flexible
+    /// mechanism for interacting with different graph configurations or path scenarios.
+    /// </remarks>
+    private readonly IEnumerable<IPathTransform> _transforms;
+
     /// <summary>
     /// Stores the internal mapping of commands to their corresponding path patterns.
     /// This data structure associates commands, which implement the <see cref="ICommand"/> interface,
@@ -89,8 +116,10 @@ public class PathExecutor
     /// removals, or full-clears of its contents. It acts as a mediator for resolving context and executing commands
     /// based on the given path patterns.
     /// </remarks>
-    public PathExecutor()
+    public PathExecutor(GridGraph graph, params IEnumerable<IPathTransform> transforms)
     {
+        _graph = graph;
+        _transforms = transforms;
         _environmentVariablesListenable = new ListenableDictionary<string, object>(_environmentVariables);
         _environmentVariablesListenable.OnUpdate += OnUpdate;
         _environmentVariablesListenable.OnRemove += OnRemove;
@@ -132,7 +161,7 @@ public class PathExecutor
     /// </summary>
     /// <param name="resolver">The environment resolver to be removed. It will be unregistered
     /// from its update events, and its context will be cleaned up.</param>
-    public void RemoveContextResolver(IEnvironmentResolver resolver)
+    public void RemoveEnvironmentResolver(IEnvironmentResolver resolver)
     {
         // Unmap all environment variables
         resolver.OnUpdate -= OnResolverUpdate;
@@ -146,13 +175,17 @@ public class PathExecutor
     }
 
     /// <summary>
-    /// Adds a command to be executed with an associated path pattern and optional pattern family configuration.
+    /// Adds a command associated with a specific path pattern and optionally its family to the internal command collection.
     /// </summary>
-    /// <param name="command">The command to add. Must implement the <see cref="ICommand"/> interface.</param>
-    /// <param name="pattern">The path object used to define the execution pattern for the command.</param>
-    /// <param name="patternFamily">A boolean flag indicating whether the path pattern should be treated as a family of patterns. Defaults to false.</param>
-    public void AddCommand(ICommand command, Path pattern, bool patternFamily = false) => 
+    /// <param name="command">The command to be executed when the associated pattern is matched.</param>
+    /// <param name="pattern">The discrete path pattern which identifies the context for the command.</param>
+    /// <param name="patternFamily">Indicates whether the command should apply to the entire pattern family (optional, default is false).</param>
+    public void AddCommand(ICommand command, Path pattern, bool patternFamily = false)
+    {
+        pattern = _transforms.Where(transform => transform.IsRequired)
+            .Aggregate(pattern, (current, transform) => transform.Transform(_graph, current));
         _commands.Set(pattern.ToArray(), patternFamily, command);
+    }
 
 
     /// <summary>
@@ -161,24 +194,37 @@ public class PathExecutor
     /// </summary>
     public void ResetStack() => _stack.Clear();
 
+
     /// <summary>
-    /// Executes the command associated with the provided path.
-    /// If a matching command is found, it is executed within the provided execution context.
+    /// Executes a command associated with the given path, applying all specified path transformations
+    /// and resolving the appropriate command to execute based on the transformed paths.
     /// </summary>
-    /// <param name="path">The path object defining the start node and directions for the execution.</param>
+    /// <param name="path">The initial path to be transformed and evaluated for command execution.</param>
     /// <returns>
-    /// Returns <c>true</c> if a matching command for the specified path is found and executed successfully;
-    /// otherwise, returns <c>false</c>.
+    /// A boolean value indicating whether a command was successfully executed for the given path.
+    /// Returns true if a command was executed; otherwise, false.
     /// </returns>
     public bool Execute(Path path)
     {
-        if (!_commands.TryGetValue(path.ToArray(), out var command)) return false;
-        command.Execute(new CommandContext(
-            path,
-            _environmentVariablesListenable,
-            _stack
-        ));
-        return true;
+        var paths = new List<Path>([path]);
+        foreach (var transform in _transforms)
+        {
+            var newPaths = paths.Select(p => transform.Transform(_graph, p)).ToList();
+            if (!transform.IsRequired) 
+                newPaths.AddRange(paths);
+            paths = newPaths;
+        }
+        foreach (var p in paths)
+        {
+            if (!_commands.TryGetValue(p.ToArray(), out var command)) continue;
+            command.Execute(new CommandContext(
+                path,
+                _environmentVariablesListenable,
+                _stack
+            ));
+            return true;
+        }
+        return false;
     }
 
     /// <summary>

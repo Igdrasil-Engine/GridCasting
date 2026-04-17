@@ -10,6 +10,15 @@ namespace GridCasting.Transform;
 public interface IPathTransform
 {
     /// <summary>
+    /// Gets a value indicating whether this transformation is required.
+    /// </summary>
+    /// <value>
+    /// A boolean indicating the necessity of the transformation.
+    /// If true, the transformation must be applied; if false, the transformation is optional.
+    /// </value>
+    public bool IsRequired { get; }
+
+    /// <summary>
     /// Transforms the given path based on the specified grid graph.
     /// </summary>
     /// <param name="graph">The grid graph on which the transformation is based.</param>

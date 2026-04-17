@@ -1,7 +1,7 @@
 ﻿using IgdrasilEngine.Engine.Math.Boxes;
 using IgdrasilEngine.Engine.Math.Vectors;
 
-namespace GridCasting.Utils.BVH.Point;
+namespace GridCasting.Utils.BVH;
 /// <summary>
 /// Интерфейс для чтения BVH дерева точек в 2D пространстве
 /// </summary>
@@ -20,6 +20,14 @@ public interface IReadOnlyPointBVH2D<T> where T : PointBVH2DTransform<T>
     /// <param name="radius">Радиус поиска.</param>
     /// <returns>Список точек, найденных в пределах радиуса.</returns>
     public List<T> FindNearest(FVector2 position, float radius);
+
+    /// <summary>
+    /// Finds the nearest point in the BVH tree to the specified position.
+    /// </summary>
+    /// <param name="position">The position for which the nearest point is to be found.</param>
+    /// <returns>The nearest point of type <typeparamref name="T"/> to the specified position.</returns>
+    public T? FindNearest(FVector2 position);
+
     /// <summary>
     /// Находит все точки в пределах заданного радиуса от указанной позиции и добавляет их в предоставленный список.
     /// </summary>

@@ -1,5 +1,4 @@
-﻿using GridCasting.Utils.BVH.Point;
-using IgdrasilEngine.Engine.Math.Boxes;
+﻿using IgdrasilEngine.Engine.Math.Boxes;
 using IgdrasilEngine.Engine.Math.Vectors;
 
 namespace GridCasting.Utils.BVH;
@@ -66,6 +65,14 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         lock (_root)
         {
             _root.Remove(value);
+        }
+    }
+
+    public T? FindNearest(FVector2 position)
+    {
+        lock (_root)
+        {
+            return _root.FindNearestFwd(position);
         }
     }
 
@@ -191,6 +198,7 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="radius">Радиус поиска.</param>
         /// <param name="result">Список для хранения найденных точек.</param>
         public abstract void FindNearestFwd(FVector2 position, float radius, List<T> result);
+        public abstract T? FindNearestFwd(FVector2 position);
         /// <summary>
         /// Находит все точки в пределах заданного радиуса от указанной позиции.
         /// </summary>
@@ -517,6 +525,14 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
             Left?.FindNearestFwd(position, radius, result);
             Right?.FindNearestFwd(position, radius, result);
         }
+
+        public override T? FindNearestFwd(FVector2 position)
+        {
+            if (!AABB.ContainsInclusive(position)) return null;
+            if (Left == null) return Right?.FindNearestFwd(position);
+            if (Right == null) return Left?.FindNearestFwd(position);
+            return FBox2.Distance(Left.AABB, position) < FBox2.Distance(Right.AABB, position) ? Left.FindNearestFwd(position) : Right.FindNearestFwd(position);
+        }
         /// <summary>
         /// Находит все точки в пределах заданного радиуса от указанной позиции.
         /// </summary>
@@ -690,6 +706,9 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
             if (FVector2.Distance(position, _value.TreePosition) > radius) return;
             result.Add(_value);
         }
+
+        public override T? FindNearestFwd(FVector2 position) => _value;
+
         /// <summary>
         /// Находит все точки в пределах заданного радиуса от указанной позиции.
         /// </summary>
