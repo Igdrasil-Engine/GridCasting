@@ -1,7 +1,11 @@
 ﻿using GridCasting.Executor;
 using GridCasting.Models.GridGraph;
 using GridCasting.Transform;
-using IgdrasilEngine.Engine.Math.Vectors;
+#if NET8_0_OR_GREATER
+using FVector2 = IgdrasilEngine.Engine.Math.Vectors.FVector2;
+#else
+using FVector2 = UnityEngine.Vector2;
+#endif
 using Path = GridCasting.Models.Path;
 
 namespace GridCasting;
@@ -12,10 +16,11 @@ namespace GridCasting;
 /// with a grid graph and allows operations based on positional data
 /// provided by the user.
 /// </summary>
-public class GridCasting(
+public class GridCastingManager(
     GridGraph graph, 
     float sensitivity, 
-    params IEnumerable<IPathTransform> transforms
+    IPathTransform[] transforms,
+    IPathValidator[] validators
 ) {
     /// <summary>
     /// A private, read-only instance of the <see cref="GridResolver"/> class that is responsible
@@ -23,7 +28,7 @@ public class GridCasting(
     /// and acquiring positional information. It operates on the provided <see cref="GridGraph"/>
     /// and uses a specified sensitivity value for fine-tuning resolution behavior.
     /// </summary>
-    private readonly GridResolver _resolver = new(graph, sensitivity);
+    public GridResolver Resolver { get; } = new(graph, sensitivity, validators);
 
     /// <summary>
     /// Gets an instance of the <see cref="PathExecutor"/> class, responsible for executing
@@ -43,7 +48,7 @@ public class GridCasting(
     /// </param>
     public void Execute(FVector2[] positions)
     {
-        var path = _resolver.GetPath(positions);
+        var path = Resolver.GetPath(positions);
         if (path.HasValue) Executor.Execute(path.Value);
     }
 }

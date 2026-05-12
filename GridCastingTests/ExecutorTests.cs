@@ -22,14 +22,14 @@ public class ExecutorTests
     [Test]
     public void TestNoCommands()
     {
-        var executor = new PathExecutor(_graph, []);
+        var executor = new PathExecutor(_graph);
         Assert.That(executor.Execute(_path), Is.False, "Executor should not execute without commands");
     }
 
     [Test]
     public void TestWrongCommand()
     {
-        var executor = new PathExecutor(_graph, []);
+        var executor = new PathExecutor(_graph);
         executor.AddCommand(new TestPassedCommand(), _path);
 
         Assert.Multiple(() =>
@@ -41,7 +41,7 @@ public class ExecutorTests
     [Test]
     public void TestCommandExecution()
     {
-        var executor = new PathExecutor(_graph, []);
+        var executor = new PathExecutor(_graph);
         executor.AddCommand(new TestPassedCommand(), _path);
 
         Assert.Multiple(() =>
@@ -53,7 +53,7 @@ public class ExecutorTests
     [Test]
     public void TestCommandFamily()
     {
-        var executor = new PathExecutor(_graph, []);
+        var executor = new PathExecutor(_graph);
         executor.AddCommand(new TestPassedCommand(), new Path(0, 1, 1, 2), true);
 
         Assert.Multiple(() =>

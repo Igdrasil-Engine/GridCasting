@@ -1,5 +1,12 @@
-﻿using IgdrasilEngine.Engine.Math.Boxes;
-using IgdrasilEngine.Engine.Math.Vectors;
+﻿#if NET8_0_OR_GREATER
+using FVector2 = IgdrasilEngine.Engine.Math.Vectors.FVector2;
+using FBox2 = IgdrasilEngine.Engine.Math.Boxes.FBox2;
+#else
+using UnityEngine;
+using FVector2 = UnityEngine.Vector2;
+using FBox2 = UnityEngine.Rect;
+#endif
+
 
 namespace GridCasting.Utils.BVH;
 
@@ -111,7 +118,11 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         {
             _root.Left = null;
             _root.Right = null;
+#if NET8_0_OR_GREATER
             _root.AABB = new FBox2(FVector2.Zero, FVector2.Zero);
+#else
+            _root.AABB = new FBox2(FVector2.zero, FVector2.zero);
+#endif
         }
     }
 
@@ -286,9 +297,12 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// </summary>
         /// <param name="parent">Родительская ветвь.</param>
         /// <param name="root">Корневая ветвь.</param>
-        public Branch(Branch? parent, Branch root) : base(new FBox2(FVector2.Zero, FVector2.Zero), parent, root)
-        {
-        }
+
+#if NET8_0_OR_GREATER
+        public Branch(Branch? parent, Branch root) : base(new FBox2(FVector2.Zero, FVector2.Zero), parent, root) { }
+#else
+        public Branch(Branch? parent, Branch root) : base(new FBox2(FVector2.zero, FVector2.zero), parent, root) { }
+#endif
 
         /// <summary>
         /// Глубина BVH дерева.
@@ -307,8 +321,25 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="value">Точка для добавления.</param>
         public override void Add(T value)
         {
+#if NET8_0_OR_GREATER
             var left = Left == null ? 0 : FBox2.Distance(Left.AABB, value.TreePosition);
             var right = Right == null ? 0 : FBox2.Distance(Right.AABB, value.TreePosition);
+#else
+            var left = Left == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Left.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Left.AABB.center.y)
+                ) - Left.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            var right = Right == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Right.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Right.AABB.center.y)
+                ) - Right.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+#endif
 
             if (left < right)
             {
@@ -333,8 +364,25 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="stack">Стек узлов для обхода.</param>
         public override void Add(T value, Stack<Node> stack)
         {
+#if NET8_0_OR_GREATER
             var left = Left == null ? 0 : FBox2.Distance(Left.AABB, value.TreePosition);
             var right = Right == null ? 0 : FBox2.Distance(Right.AABB, value.TreePosition);
+#else
+            var left = Left == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Left.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Left.AABB.center.y)
+                ) - Left.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            var right = Right == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Right.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Right.AABB.center.y)
+                ) - Right.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+#endif
 
             if (left < right)
             {
@@ -356,8 +404,25 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="value">Точка для добавления.</param>
         public override void OptimizedAdd(T value)
         {
+#if NET8_0_OR_GREATER
             var left = Left == null ? 0 : FBox2.Distance(Left.AABB, value.TreePosition);
             var right = Right == null ? 0 : FBox2.Distance(Right.AABB, value.TreePosition);
+#else
+            var left = Left == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Left.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Left.AABB.center.y)
+                ) - Left.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            var right = Right == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Right.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Right.AABB.center.y)
+                ) - Right.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+#endif
 
             if (left < right)
             {
@@ -412,8 +477,25 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="stack">Стек узлов для обхода.</param>
         public override void OptimizedAdd(T value, Stack<Node> stack)
         {
+#if NET8_0_OR_GREATER
             var left = Left == null ? 0 : FBox2.Distance(Left.AABB, value.TreePosition);
             var right = Right == null ? 0 : FBox2.Distance(Right.AABB, value.TreePosition);
+#else
+            var left = Left == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Left.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Left.AABB.center.y)
+                ) - Left.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            var right = Right == null ? 0 : FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(value.TreePosition.x - Right.AABB.center.x), 
+                    Mathf.Abs(value.TreePosition.y - Right.AABB.center.y)
+                ) - Right.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+#endif
 
             if (left < right)
             {
@@ -521,17 +603,45 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="result">Список для хранения найденных точек.</param>
         public override void FindNearestFwd(FVector2 position, float radius, List<T> result)
         {
+#if NET8_0_OR_GREATER
             if (!FBox2.SphereIntersection(AABB, position, radius)) return;
+#else
+            var closest = FVector2.Max(AABB.min,FVector2.Min(position, AABB.max));
+            if (FVector2.Distance(position, closest) >= radius) return;
+#endif
             Left?.FindNearestFwd(position, radius, result);
             Right?.FindNearestFwd(position, radius, result);
         }
 
         public override T? FindNearestFwd(FVector2 position)
         {
+#if NET8_0_OR_GREATER
             if (!AABB.ContainsInclusive(position)) return null;
+#else
+            if (!AABB.Contains(position)) return null;
+#endif
             if (Left == null) return Right?.FindNearestFwd(position);
             if (Right == null) return Left?.FindNearestFwd(position);
+#if NET8_0_OR_GREATER
             return FBox2.Distance(Left.AABB, position) < FBox2.Distance(Right.AABB, position) ? Left.FindNearestFwd(position) : Right.FindNearestFwd(position);
+#else
+            var leftDst = FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(position.x - Left.AABB.center.x),
+                    Mathf.Abs(position.y - Left.AABB.center.y)
+                ) - Left.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            var rightDst = FVector2.Max(
+                new FVector2(
+                    Mathf.Abs(position.x - Right.AABB.center.x),
+                    Mathf.Abs(position.y - Right.AABB.center.y)
+                ) - Right.AABB.size / 2,
+                FVector2.zero
+            ).magnitude;
+            return leftDst < rightDst ? Left.FindNearestFwd(position) : Right.FindNearestFwd(position);
+
+#endif
         }
         /// <summary>
         /// Находит все точки в пределах заданного радиуса от указанной позиции.
@@ -542,7 +652,12 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
         /// <param name="stack">Стек узлов для обхода.</param>
         public override void FindNearestFwd(FVector2 position, float radius, List<T> result, Stack<Node> stack)
         {
+#if NET8_0_OR_GREATER
             if (!FBox2.SphereIntersection(AABB, position, radius)) return;
+#else
+            var closest = FVector2.Max(AABB.min,FVector2.Min(position, AABB.max));
+            if (FVector2.Distance(position, closest) >= radius) return;
+#endif
             if (Left != null) stack.Push(Left);
             if (Right != null) stack.Push(Right);
         }
@@ -555,7 +670,14 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
             if (Left == null && Right == null) return;
             var left = Left?.AABB ?? Right!.AABB;
             var right = Right?.AABB ?? Left!.AABB;
+#if NET8_0_OR_GREATER
             AABB = FBox2.Union(left, right);
+#else
+            AABB = new FBox2(
+                FVector2.Min(left.min, right.min),
+                FVector2.Max(left.max, right.max)
+            );
+#endif
         }
         /// <summary>
         /// Перемещает точку в BVH дереве.
@@ -573,7 +695,11 @@ public class PointBVH2D<T> : IReadOnlyPointBVH2D<T> where T : PointBVH2DTransfor
                 RemoveCurrentNode();
             else Parent.UpdateAABB();
 
+#if NET8_0_OR_GREATER
             if (Parent.AABB.ContainsInclusive(value.TreePosition))
+#else
+            if (Parent.AABB.Contains(value.TreePosition))
+#endif
             {
                 Parent.OptimizedAdd(value);
                 return;

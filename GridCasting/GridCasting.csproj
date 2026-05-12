@@ -1,18 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\IgdrasilEngine\IgdrasilMath\IgdrasilMath.csproj" />
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`.0123456789`))' == 'net'">
+        <ProjectReference Include="..\..\IgdrasilEngine\IgdrasilMath\IgdrasilMath.csproj"/>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Transform\PathTransforms\" />
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`.0123456789`))' == 'netstandard'">
+        <Reference Include="UnityEngine">
+            <HintPath>D:\Unity\6000.3.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>D:\Unity\6000.3.11f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

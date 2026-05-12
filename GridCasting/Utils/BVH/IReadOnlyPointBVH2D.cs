@@ -1,5 +1,15 @@
-﻿using IgdrasilEngine.Engine.Math.Boxes;
-using IgdrasilEngine.Engine.Math.Vectors;
+﻿using FVector2 = 
+#if NET8_0_OR_GREATER
+    IgdrasilEngine.Engine.Math.Vectors.FVector2;
+#else
+    UnityEngine.Vector2;
+#endif
+using FBox2 = 
+#if NET8_0_OR_GREATER
+    IgdrasilEngine.Engine.Math.Boxes.FBox2;
+#else
+    UnityEngine.Rect;
+#endif
 
 namespace GridCasting.Utils.BVH;
 /// <summary>

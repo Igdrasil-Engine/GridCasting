@@ -1,4 +1,9 @@
-﻿using IgdrasilEngine.Engine.Math.Vectors;
+﻿using FVector2 = 
+#if NET8_0_OR_GREATER
+    IgdrasilEngine.Engine.Math.Vectors.FVector2;
+#else
+    UnityEngine.Vector2;
+#endif
 
 namespace GridCasting.Utils.BVH;
 

@@ -18,6 +18,8 @@ public interface IPathTransform
     /// </value>
     public bool IsRequired { get; }
 
+    public void Initialize(GridGraph graph);
+    
     /// <summary>
     /// Transforms the given path based on the specified grid graph.
     /// </summary>
@@ -25,12 +27,4 @@ public interface IPathTransform
     /// <param name="path">The path to be transformed.</param>
     /// <returns>A transformed path as per the grid graph rules.</returns>
     public Path Transform(GridGraph graph, Path path);
-
-    /// <summary>
-    /// Reverses the transformation applied to the provided path based on the specified grid graph.
-    /// </summary>
-    /// <param name="graph">The grid graph used to reverse the transformation.</param>
-    /// <param name="path">The path to be reversed.</param>
-    /// <returns>A path that has the reverse transformation applied based on the grid graph rules.</returns>
-    public Path Reverse(GridGraph graph, Path path);
 }

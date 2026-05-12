@@ -1,7 +1,9 @@
+using System.Globalization;
 using GridCasting.Models.GridGraph;
 using GridCasting.Transform;
 using IgdrasilEngine.Engine.Math.Boxes;
 using IgdrasilEngine.Engine.Math.Vectors;
+using FVector2 = IgdrasilEngine.Engine.Math.Vectors.FVector2;
 
 namespace GridCastingTests;
 
@@ -106,7 +108,7 @@ public class GridResolverTests
     [Test]
     public void TestGrid()
     {
-        var positions = _resolver.GetGridPositions(new FBox2(FVector2.One * -5, FVector2.One * 5));
+        var positions = _resolver.GetGridPositions(new FBox2(FVector2.One * -10, FVector2.One * 10));
         var invSqrt3 = 1f / MathF.Sqrt(3);
         Assert.Multiple(() =>
         {
@@ -123,5 +125,46 @@ public class GridResolverTests
                 Assert.That(y, Is.EqualTo(0).Within(0.001f), $"Position {pos} is not on the grid");
             }
         });
+    }
+
+    [Test]
+    public void TestGrid2()
+    {
+        var graph = new GridGraph();
+        for (var i = 0; i < 7; i++) graph.Nodes.Add(new GridGraphNode());
+        for (var i = 1; i < 7; i++)
+        {
+            var angle = MathF.PI * (i - 1) / 3;
+            var edge = new GridGraphEdge(
+                graph[0], graph[i], 
+                angle, 1
+            );
+            graph[0].Edges.Add(edge);
+            graph[i].Edges.Add(edge);
+            var ni = i % 6 + 1;
+            edge = new GridGraphEdge(
+                graph[i], graph[ni],
+                MathF.PI * (i + 1) / 3, 1
+            );
+            graph[i].Edges.Add(edge);
+            graph[ni].Edges.Add(edge);
+            if (i > 3) continue;
+            var jump = (i + 2) % 6 + 1;
+            edge = new GridGraphEdge(
+                graph[i], graph[jump],
+                angle, 1
+            );
+            graph[i].Edges.Add(edge);
+            graph[jump].Edges.Add(edge);
+        }
+        
+        var resolver = new GridResolver(
+            graph,
+            0.1f
+        );
+        var positions = resolver.GetGridPositions(new FBox2(FVector2.One * -10, FVector2.One * 10));
+        
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+        Console.WriteLine(string.Join(", ", positions.Select(p => $"new({p.X}f,{p.Y}f)")));
     }
 }

@@ -108,6 +108,27 @@ public class PathExecutor
     private readonly Stack<object> _stack = new();
 
     /// <summary>
+    /// Occurs when a command execution associated with a specific <see cref="Path"/> fails.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="OnCommandFailed"/> event is invoked during execution in the <see cref="PathExecutor"/> class
+    /// whenever a path-related command cannot be matched or executed successfully. It provides the failed
+    /// <see cref="Path"/> instance as a parameter, allowing subscribers to handle or log the failure appropriately.
+    /// </remarks>
+    public event Action<Path> OnCommandFailed;
+
+    /// <summary>
+    /// Represents an event that is triggered upon successful execution of a command
+    /// within the <see cref="PathExecutor"/> class.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="OnCommandSuccess"/> event is invoked when a command associated with a given path
+    /// is executed without errors. The event provides subscribers with the successfully executed
+    /// <see cref="Path"/> instance, enabling additional operations or reactions to the success state.
+    /// </remarks>
+    public event Action<Path> OnCommandSuccess;
+
+    /// <summary>
     /// Handles the execution of commands associated with specific path patterns and manages environment variables
     /// with the ability to listen and react to changes.
     /// </summary>
@@ -116,8 +137,9 @@ public class PathExecutor
     /// removals, or full-clears of its contents. It acts as a mediator for resolving context and executing commands
     /// based on the given path patterns.
     /// </remarks>
-    public PathExecutor(GridGraph graph, params IEnumerable<IPathTransform> transforms)
+    public PathExecutor(GridGraph graph, params IPathTransform[] transforms)
     {
+        foreach (var transform in transforms) transform.Initialize(graph);
         _graph = graph;
         _transforms = transforms;
         _environmentVariablesListenable = new ListenableDictionary<string, object>(_environmentVariables);
@@ -222,8 +244,10 @@ public class PathExecutor
                 _environmentVariablesListenable,
                 _stack
             ));
+            OnCommandSuccess?.Invoke(path);
             return true;
         }
+        OnCommandFailed?.Invoke(path);
         return false;
     }
 
