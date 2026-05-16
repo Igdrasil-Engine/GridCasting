@@ -36,4 +36,8 @@ public struct Path(int startNode, params int[] directions) : IEnumerable<int>
     /// </summary>
     /// <returns>An enumerator that iterates through the elements of the path.</returns>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public override string ToString() => $"{StartNode} -> {string.Join(", ", Directions)}";
+    public override int GetHashCode() => HashCode.Combine(StartNode, Directions);
+    public override bool Equals(object? obj) => obj is Path path && StartNode == path.StartNode && Directions.SequenceEqual(path.Directions);
 }
